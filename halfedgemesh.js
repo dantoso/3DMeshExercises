@@ -56,7 +56,6 @@ class HFace {
         if (this.h === null) {
             return [];
         }
-        // TODO: Fill this in
         let h = this.h.next;
         let edges = [this.h];
 
