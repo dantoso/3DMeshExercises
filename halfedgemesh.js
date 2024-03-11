@@ -139,8 +139,25 @@ class HVertex {
         if (this.h === null) {
             return [];
         }
-        // TODO: Fill this in (a do while loop works well)
-        return [];
+
+        if(this.h.head.ID == this.ID) {
+            this.h = this.h.next;
+        }
+
+        let neighbors = [];
+        let edge = this.h;
+
+        do {
+            neighbors.push(edge.head);
+
+            while(edge.head.ID != this.ID) {
+                edge = edge.next;
+            }
+
+            edge = edge.pair;
+        } while(edge.head.ID != neighbors[0].ID);
+
+        return neighbors;
     }
 
     /**
