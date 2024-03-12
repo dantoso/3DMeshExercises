@@ -170,8 +170,35 @@ class HVertex {
         if (this.h === null) {
             return [];
         }
-        // TODO: Fill this in (this is very similar to getVertexNeighbors)
-        return [];
+
+        if(this.h.head.ID == this.ID) {
+            this.h = this.h.next;
+        }
+
+        let faces = [];
+        let edge = this.h;
+
+        do {
+            if(edge.face !== null) {
+                faces.push(edge.face);
+            }
+
+            while(edge.head.ID != this.ID) {
+                edge = edge.next;
+            }
+
+            edge = edge.pair;
+
+            if(edge.face === null) {
+                while(edge.head.ID != this.ID) {
+                    edge = edge.next;
+                }
+    
+                edge = edge.pair;
+            }
+        } while(edge.face.ID != faces[0].ID);
+
+        return faces;
     }
 
     /**
