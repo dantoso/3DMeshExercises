@@ -92,11 +92,23 @@ class HFace {
      * @returns {float} The area of this face
      */
     getArea() {
-        let area = 0.0;
-        // TODO: Fill this in (you can use mini assignment 1 to help)
-        // Remember, there are n-2 triangles in an n-gon
+        let edges = this.getEdges();
+        let result = vec3.fromValues(0,0,0);
 
-        return area;
+        for(let i = 0; i<edges.length-2; i++) {
+            let cross = vec3.create();
+            let v1 = vec3.create();
+            let v2 = vec3.create();
+
+            v1 = this.getVectorBetweenPoints(edges[i].head.pos, edges[i].prev.head.pos);
+            v2 = this.getVectorBetweenPoints(edges[i+1].head.pos, edges[i+1].prev.head.pos);
+
+            vec3.cross(cross, v1, v2);
+            vec3.scale(cross, cross, 0.5);
+            vec3.add(result, result, cross);
+        }
+
+        return vec3.length(result);
     }
 
     /**
@@ -106,9 +118,27 @@ class HFace {
      */
     getNormal() {
         let normal = vec3.create();
-        // TODO: Fill this in
-        
+        let v1 = vec3.create();
+        let v2 = vec3.create();
+        let aux = vec3.create();
+
+        v1 = this.getVectorBetweenPoints(this.h.head.pos, this.h.prev.head.pos);
+        v2 = this.getVectorBetweenPoints(this.h.next.head.pos, this.h.head.pos);
+
+        vec3.cross(normal, v1, v2);
+        vec3.normalize(normal, normal);
+
         return normal;
+    }
+
+    getVectorBetweenPoints(a, b) {
+        let vector = vec3.create();
+        let aux = vec3.create();
+
+        vec3.negate(aux, b);
+        vec3.add(vector, a, aux);
+        
+        return vector;
     }
 }
 
@@ -208,12 +238,21 @@ class HVertex {
      * @returns {vec3} The estimated normal
      */
     getNormal() {
-        // TODO: This is a dummy value that makes all normals (1, 0, 0)
-        // just so something shows up.  You should actually initialize it to (0, 0, 0)
-        // and accumulate neighboring face normals in a loop for your average
-        let normal = vec3.fromValues(1, 0, 0); 
-        // TODO: Fill this in 
-        // Hint: use this.getAttachedFaces(), face.getArea(), and face.getNormal() to help
+        let normal = vec3.fromValues(0, 0, 0); 
+        let faces = this.getAttachedFaces();
+        let areaSum = 0.0;
+
+        for(let i = 0; i<faces.length; i++) {
+            let faceNormal = faces[i].getNormal();
+            
+            let area = faces[i].getArea();
+            areaSum += area;
+
+            vec3.scale(faceNormal, faceNormal, area);
+            vec3.add(normal, normal, faceNormal);
+        }
+
+        vec3.scale(normal, normal, 1/areaSum);
 
         return normal;
     }
