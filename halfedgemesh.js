@@ -553,8 +553,24 @@ class HedgeMesh extends PolyMesh {
      */
     getBoundaryCycles() {
         let cycles = [];
-        // TODO: Fill this in (hint: Add a variable to an edge which
-        // stores whether this edge has been checked yet)
+        for(let edge of this.edges) {
+            edge.isChecked = false;
+        }
+        for(let edge of this.edges) {
+            if(edge.face === null && !edge.isChecked) {
+                let cycle = [edge];
+                edge.isChecked = true;
+                let iterated = edge.next;
+
+                while(iterated.head.ID != edge.head.ID) {
+                    cycle.push(iterated);
+                    iterated.isChecked = true
+                    iterated = iterated.next;
+                }
+
+                cycles.push(cycle);
+            }
+        }
 
         return cycles;
     }
