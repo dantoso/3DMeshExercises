@@ -100,8 +100,8 @@ class HFace {
             let v1 = vec3.create();
             let v2 = vec3.create();
 
-            v1 = this.getVectorBetweenPoints(edges[i].head.pos, edges[i].prev.head.pos);
-            v2 = this.getVectorBetweenPoints(edges[i+1].head.pos, edges[i+1].prev.head.pos);
+            v1 = getVectorBetweenPoints(edges[i].head.pos, edges[i].prev.head.pos);
+            v2 = getVectorBetweenPoints(edges[i+1].head.pos, edges[i+1].prev.head.pos);
 
             vec3.cross(cross, v1, v2);
             vec3.scale(cross, cross, 0.5);
@@ -120,25 +120,14 @@ class HFace {
         let normal = vec3.create();
         let v1 = vec3.create();
         let v2 = vec3.create();
-        let aux = vec3.create();
 
-        v1 = this.getVectorBetweenPoints(this.h.head.pos, this.h.prev.head.pos);
-        v2 = this.getVectorBetweenPoints(this.h.next.head.pos, this.h.head.pos);
+        v1 = getVectorBetweenPoints(this.h.head.pos, this.h.prev.head.pos);
+        v2 = getVectorBetweenPoints(this.h.next.head.pos, this.h.head.pos);
 
         vec3.cross(normal, v1, v2);
         vec3.normalize(normal, normal);
 
         return normal;
-    }
-
-    getVectorBetweenPoints(a, b) {
-        let vector = vec3.create();
-        let aux = vec3.create();
-
-        vec3.negate(aux, b);
-        vec3.add(vector, a, aux);
-        
-        return vector;
     }
 }
 
@@ -291,6 +280,16 @@ function makeNextPrev(h1, h2) {
 function linkEdges(h1, h2) {
     h1.pair = h2;
     h2.pair = h1;
+}
+
+function getVectorBetweenPoints(a, b) {
+    let vector = vec3.create();
+    let aux = vec3.create();
+
+    vec3.negate(aux, b);
+    vec3.add(vector, a, aux);
+    
+    return vector;
 }
 
 
@@ -502,7 +501,9 @@ class HedgeMesh extends PolyMesh {
     inflateDeflate(fac) {
         // Loop through all the vertices in the mesh
         for (let vertex of this.vertices) {
-            // TODO: Fill this in
+            let scaledNormal = vec3.create();
+            vec3.scale(scaledNormal, vertex.getNormal(), fac);
+            vec3.add(vertex.pos, vertex.pos, scaledNormal);
         }
         this.needsDisplayUpdate = true;
     }
@@ -515,7 +516,26 @@ class HedgeMesh extends PolyMesh {
      * @param {boolean} smooth If true, smooth.  If false, sharpen
      */
     laplacianSmoothSharpen(smooth) {
-        // TODO: Fill this in
+        let sign = smooth ? 1 : -1;
+        let smoothedPos = [];
+
+        for(let vertex of this.vertices) {
+            let neighbors = vertex.getVertexNeighbors();
+            let mean = vec3.fromValues(0,0,0);
+
+            for(let neighbor of neighbors) {
+                let vector = getVectorBetweenPoints(neighbor.pos, vertex.pos);
+                vec3.add(mean, mean, vector);
+            }
+
+            vec3.scale(mean, mean, (1/neighbors.length)*sign);
+
+            smoothedPos.push(mean);
+        }
+
+        for(let i = 0; i<this.vertices.length; i++) {
+            vec3.add(this.vertices[i].pos, this.vertices[i].pos, smoothedPos[i]);
+        }
 
         this.needsDisplayUpdate = true;
     }
